@@ -25,6 +25,7 @@ private val CAMPGROUNDS_URL =
     "https://developer.nps.gov/api/v1/campgrounds?api_key=${PARKS_API_KEY}"
 
 class MainActivity : AppCompatActivity() {
+    private val campgrounds = mutableListOf<Campground>()
     private lateinit var campgroundsRecyclerView: RecyclerView
     private lateinit var binding: ActivityMainBinding
 
@@ -39,8 +40,8 @@ class MainActivity : AppCompatActivity() {
 
         campgroundsRecyclerView = findViewById(R.id.campgrounds)
 
-        // TODO: Set up CampgroundAdapter with campgrounds
-
+        val campgroundAdapter = CampgroundAdapter(this, campgrounds)
+        campgroundsRecyclerView.adapter = campgroundAdapter
 
         campgroundsRecyclerView.layoutManager = LinearLayoutManager(this).also {
             val dividerItemDecoration = DividerItemDecoration(this, it.orientation)
@@ -61,11 +62,21 @@ class MainActivity : AppCompatActivity() {
             override fun onSuccess(statusCode: Int, headers: Headers, json: JSON) {
                 Log.i(TAG, "Successfully fetched campgrounds: $json")
                 try {
-                    // TODO: Create the parsedJSON
+                    val parsedJson = createJson().decodeFromString(
+                        CampgroundResponse.serializer(),
+                        json.jsonObject.toString()
+                    )
 
-                    // TODO: Do something with the returned json (contains campground information)
+                    parsedJson.data?.let { list ->
+                        campgrounds.addAll(list)
+                    }
 
-                    // TODO: Save the campgrounds and reload the screen
+                    parsedJson.data?.let { list ->
+                        campgrounds.addAll(list)
+
+                        // TODO: Notify the adapter that the dataset has changed
+                        campgroundAdapter.notifyDataSetChanged()
+                    }
 
                 } catch (e: JSONException) {
                     Log.e(TAG, "Exception: $e")
