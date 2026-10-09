@@ -1,0 +1,28 @@
+package com.codepath.campgrounds
+
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import android.content.Context
+import androidx.room.Room
+@Database(entities = [CampgroundEntity::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun campgroundDao(): CampgroundDao
+
+    companion object {
+
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
+            }
+
+        private fun buildDatabase(context: Context) =
+            Room.databaseBuilder(
+                context.applicationContext,
+                AppDatabase::class.java, "Campgrounds-db"
+            ).build()
+    }
+}
